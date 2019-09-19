@@ -15,11 +15,11 @@ headers = {
 }
 
 base_url = 'http://www.xiaohuar.com'
-def get_soup(url):
+async def get_soup(url):
     response = requests.get(url)
     return BeautifulSoup(response.text, 'lxml')
 
-def down_load(url, img_url, name):
+async def down_load(url, img_url, name):
     try:
         headers['Referer'] = url
         r = requests.get(img_url, headers = headers)
@@ -30,7 +30,7 @@ def down_load(url, img_url, name):
         print(e)
 
 async def get_img(url):
-    soup = get_soup(url)
+    soup = await get_soup(url)
     ret_list = soup.find_all(src=re.compile('.jpg'))
     name_2_url = {}
     for tag in ret_list:
@@ -48,9 +48,7 @@ async def get_img(url):
 
     for name, img_url in name_2_url.items():
         print(name, img_url)
-        down_load(url, img_url, name)
-
-    return len(name_2_url)
+        await down_load(url, img_url, name)
 
 def get_tasks(count):
     tasks = []
