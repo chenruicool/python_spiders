@@ -32,14 +32,16 @@ def get_img(url, soup):
     name_2_url = {}
     for tag in ret_list:
         # print(tag)
-        if '/' not in tag.attrs['alt']:
-            name = 'pic/' + tag.attrs['alt'] + '.jpg'
-            img_url = tag.attrs['src']
-            if "http" not in img_url:
-                img_url = base_url+img_url
+        name = tag.attrs['alt']
+        # 去掉非法字符
+        name = name.replace('/', '')
+        name = name.replace('.', '')
+        img_url = tag.attrs['src']
+        if "http" not in img_url:
+            img_url = base_url+img_url
 
-            if base_url in img_url:
-                name_2_url[name] = img_url
+        if base_url in img_url:
+            name_2_url['pic/'+name+'.jpg'] = img_url
 
 
     for name, img_url in name_2_url.items():
