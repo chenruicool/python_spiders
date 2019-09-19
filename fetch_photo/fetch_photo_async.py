@@ -7,6 +7,7 @@ import urllib.request
 import os
 import re
 import time
+import asyncio
 
 headers = {
     # 'Referer':'http://www.xiaohuar.com',
@@ -28,7 +29,8 @@ def down_load(url, img_url, name):
         time.sleep(5)
         print(e)
 
-def get_img(url, soup):
+async def get_img(url):
+    soup = get_soup(url)
     ret_list = soup.find_all(src=re.compile('.jpg'))
     name_2_url = {}
     for tag in ret_list:
@@ -44,36 +46,33 @@ def get_img(url, soup):
         if base_url in img_url:
             name_2_url['pic/'+name+'.jpg'] = img_url
 
-
     for name, img_url in name_2_url.items():
         print(name, img_url)
         down_load(url, img_url, name)
 
-
-        # urllib.request.urlretrieve(url, '%s.jpg' % name)
-
-        # response = urllib.request.urlopen(url)
-        # with open(name+'.jpg', "wb") as f:
-        #     f.write(response.read())
-
     return len(name_2_url)
+
+def get_tasks(count):
+    tasks = []
+    for index in range(0, count):
+        print('index=', index)
+        tmp_url = '/list-1-%s.html' % str(index)
+        url = base_url + tmp_url
+        coroutine = get_img(url)
+        tasks.append(asyncio.ensure_future(coroutine))
+    return tasks
 
 def main():
     src_dir = 'pic/'
     if not os.path.exists(src_dir):
         os.mkdir(src_dir)
 
-    for index in range(0, 2):
-        print('index=', index)
-        tmp_url = '/list-1-%s.html' % str(index)
-        url = base_url + tmp_url
-        soup = get_soup(url)
-        # print(soup)
-        ret_len = get_img(url, soup)
-        if ret_len==0:
-            break
+    loop = asyncio.get_event_loop()
+    tasks = get_tasks(2)
+    loop.run_until_complete(asyncio.wait(tasks))
 
 if __name__ == "__main__":
     start = time.time()
     main()
     print("cost_time:", time.time()-start)
+
